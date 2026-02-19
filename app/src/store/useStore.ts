@@ -226,7 +226,7 @@ export const useStore = create<StoreState>((set, get) => ({
   // History actions
   addHistoryItem: async (item) => {
     const user = get().user;
-    if (!user) return;
+    if (!user) throw new Error('User not authenticated');
 
     const newItem = { ...item, id: generateId() };
     await setDoc(doc(db, 'users', user.uid, 'history', newItem.id), newItem);
@@ -256,7 +256,7 @@ export const useStore = create<StoreState>((set, get) => ({
   // Treasury actions
   addTransaction: async (transaction) => {
     const user = get().user;
-    if (!user) return;
+    if (!user) throw new Error('User not authenticated');
 
     const newTransaction = { ...transaction, id: generateId() };
     await setDoc(doc(db, 'users', user.uid, 'transactions', newTransaction.id), newTransaction);
@@ -291,7 +291,7 @@ export const useStore = create<StoreState>((set, get) => ({
   // Check-in actions
   checkIn: async (meetingId, meetingName) => {
     const user = get().user;
-    if (!user) return;
+    if (!user) throw new Error('User not authenticated');
 
     const today = getToday();
     const newCheckIn = {
