@@ -16,44 +16,54 @@ export function CheckInModal({ isOpen, onClose }: CheckInModalProps) {
   const [selectedMeetingId, setSelectedMeetingId] = useState<string | null>(null);
   const [role, setRole] = useState<'Attendee' | 'Speaker' | 'Secretary' | 'Treasurer' | 'Host'>('Attendee');
   const [contribution, setContribution] = useState('');
-  const [step, setStep] = useState<'select' | 'confirm'>('select');
+  const [step, setStep] = useState<'select' | 'confirm' | 'submitting'>('select');
+  const [error, setError] = useState('');
 
   if (!isOpen) return null;
 
   const selectedMeeting = meetings.find((m) => m.id === selectedMeetingId);
 
-  const handleCheckIn = () => {
+  const handleCheckIn = async () => {
     if (!selectedMeeting) return;
     
-    const today = new Date().toISOString().split('T')[0];
+    setStep('submitting');
+    setError('');
     
-    // Add check-in
-    checkIn(selectedMeeting.id, selectedMeeting.name);
-    
-    // Add to history
-    addHistoryItem({
-      date: today,
-      meeting: selectedMeeting.name,
-      role,
-    });
-    
-    // Add contribution if provided
-    const contribAmount = parseFloat(contribution);
-    if (!isNaN(contribAmount) && contribAmount > 0) {
-      addTransaction({
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      
+      // Add check-in
+      await checkIn(selectedMeeting.id, selectedMeeting.name);
+      
+      // Add to history
+      await addHistoryItem({
         date: today,
-        amount: contribAmount,
-        type: 'contribution',
-        note: `${selectedMeeting.name} - ${role}`,
+        meeting: selectedMeeting.name,
+        role,
       });
+      
+      // Add contribution if provided
+      const contribAmount = parseFloat(contribution);
+      if (!isNaN(contribAmount) && contribAmount > 0) {
+        await addTransaction({
+          date: today,
+          amount: contribAmount,
+          type: 'contribution',
+          note: `${selectedMeeting.name} - ${role}`,
+        });
+      }
+      
+      // Reset and close
+      setSelectedMeetingId(null);
+      setRole('Attendee');
+      setContribution('');
+      setStep('select');
+      onClose();
+    } catch (err) {
+      console.error('Check-in error:', err);
+      setError('Failed to save check-in. Please try again.');
+      setStep('confirm');
     }
-    
-    // Reset and close
-    setSelectedMeetingId(null);
-    setRole('Attendee');
-    setContribution('');
-    setStep('select');
-    onClose();
   };
 
   const formatDayTime = (meeting: typeof meetings[0]) => {
@@ -70,7 +80,7 @@ export function CheckInModal({ isOpen, onClose }: CheckInModalProps) {
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b-2 border-brutal-text/10">
           <h2 className="text-xl font-heading font-bold text-brutal-text">
-            {step === 'select' ? 'Check In' : 'Confirm Check In'}
+            {step === 'select' ? 'Check In' : step === 'submitting' ? 'Saving...' : 'Confirm Check In'}
           </h2>
           <button
             onClick={onClose}
@@ -79,6 +89,12 @@ export function CheckInModal({ isOpen, onClose }: CheckInModalProps) {
             <X className="w-5 h-5" />
           </button>
         </div>
+
+        {error && (
+          <div className="mx-6 mt-4 p-3 bg-red-500/10 border-2 border-red-500/30 rounded-lg text-red-400 text-sm">
+            {error}
+          </div>
+        )}
 
         {step === 'select' ? (
           <div className="p-6">
@@ -155,6 +171,11 @@ export function CheckInModal({ isOpen, onClose }: CheckInModalProps) {
                 </button>
               </div>
             )}
+          </div>
+        ) : step === 'submitting' ? (
+          <div className="p-6 text-center">
+            <div className="w-16 h-16 border-4 border-brutal-yellow border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-brutal-text-secondary">Saving your check-in...</p>
           </div>
         ) : (
           <div className="p-6">
