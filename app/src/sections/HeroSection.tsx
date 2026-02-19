@@ -101,7 +101,7 @@ export function HeroSection() {
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(11,12,15,0.4)_100%)]" />
 
         {/* Header */}
-        <div ref={headerRef} className="absolute top-0 left-0 right-0 z-20 px-4 md:px-[4vw] py-4 md:py-[3vh]">
+        <div ref={headerRef} className="absolute top-0 left-0 right-0 z-50 px-4 md:px-[4vw] py-4 md:py-[3vh]">
           <div className="flex items-center justify-between">
             <span className="font-heading font-bold text-xl md:text-2xl text-brutal-text">AA Tracker</span>
             
@@ -120,8 +120,13 @@ export function HeroSection() {
 
             {/* Mobile Menu Button */}
             <button
-              className="md:hidden p-2 text-brutal-text"
-              onClick={() => setShowMobileMenu(!showMobileMenu)}
+              type="button"
+              className="md:hidden p-2 text-brutal-text relative z-50"
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowMobileMenu(!showMobileMenu);
+              }}
+              aria-label="Toggle menu"
             >
               {showMobileMenu ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
@@ -129,10 +134,14 @@ export function HeroSection() {
 
           {/* Mobile Menu */}
           {showMobileMenu && (
-            <div className="md:hidden absolute top-full left-0 right-0 bg-brutal-bg border-b-2 border-brutal-text/10 p-4">
+            <div 
+              className="md:hidden absolute top-full left-0 right-0 bg-brutal-bg border-b-2 border-brutal-text/10 p-4 z-40 shadow-lg"
+              onClick={(e) => e.stopPropagation()}
+            >
               {['Dashboard', 'Meetings', 'History', 'Treasury'].map((item) => (
                 <button
                   key={item}
+                  type="button"
                   onClick={() => scrollToSection(item.toLowerCase())}
                   className="block w-full text-left py-3 font-mono text-sm uppercase tracking-wider text-brutal-text-secondary hover:text-brutal-text transition-colors"
                 >
