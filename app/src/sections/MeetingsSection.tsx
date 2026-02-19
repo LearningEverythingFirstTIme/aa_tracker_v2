@@ -1,4 +1,4 @@
-import { useRef, useLayoutEffect, useState } from 'react';
+import { useRef, useLayoutEffect, useState, useEffect } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { Calendar, MapPin, ArrowUpRight, Plus, Edit2, Trash2 } from 'lucide-react';
@@ -17,6 +17,16 @@ export function MeetingsSection() {
   
   const [showMeetingModal, setShowMeetingModal] = useState(false);
   const [editingMeeting, setEditingMeeting] = useState<typeof meetings[0] | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   useLayoutEffect(() => {
     const section = sectionRef.current;
@@ -24,6 +34,9 @@ export function MeetingsSection() {
     const cards = cardsRef.current.filter(Boolean);
 
     if (!section || !header || cards.length === 0) return;
+    
+    // Skip GSAP on mobile for better performance
+    if (isMobile) return;
 
     const ctx = gsap.context(() => {
       // Header animation
@@ -62,7 +75,7 @@ export function MeetingsSection() {
     }, section);
 
     return () => ctx.revert();
-  }, [meetings]);
+  }, [meetings, isMobile]);
 
   const handleEdit = (meeting: typeof meetings[0]) => {
     setEditingMeeting(meeting);
@@ -90,16 +103,16 @@ export function MeetingsSection() {
       <section
         ref={sectionRef}
         id="meetings"
-        className="relative w-full min-h-screen bg-brutal-bg py-[8vh] z-40"
+        className="relative w-full min-h-screen bg-brutal-bg py-16 md:py-[8vh] z-40"
       >
         {/* Header */}
-        <div ref={headerRef} className="px-[6vw] mb-12">
-          <div className="flex items-center justify-between">
+        <div ref={headerRef} className="px-4 md:px-[6vw] mb-8 md:mb-12">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <h2 className="text-clamp-h2 font-heading font-bold text-brutal-text">
+              <h2 className="text-2xl md:text-clamp-h2 font-heading font-bold text-brutal-text">
                 Upcoming Meetings
               </h2>
-              <p className="text-clamp-body text-brutal-text-secondary mt-4 max-w-xl">
+              <p className="text-sm md:text-clamp-body text-brutal-text-secondary mt-2 md:mt-4 max-w-xl">
                 Show up early. Stay after. That's where the real work happens.
               </p>
             </div>
@@ -114,41 +127,41 @@ export function MeetingsSection() {
         </div>
 
         {/* Meeting Cards */}
-        <div className="px-[6vw] space-y-4">
+        <div className="px-4 md:px-[6vw] space-y-4">
           {meetings.map((meeting, i) => (
             <div
               key={meeting.id}
               ref={(el) => { cardsRef.current[i] = el; }}
-              className="brutal-panel p-6 hover:translate-y-[-6px] hover:shadow-brutal-hover transition-all cursor-pointer group"
+              className="brutal-panel p-4 md:p-6 hover:md:translate-y-[-6px] hover:md:shadow-brutal-hover transition-all cursor-pointer group"
             >
-              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-2">
-                    <h3 className="text-xl md:text-2xl font-heading font-bold text-brutal-text group-hover:text-brutal-yellow transition-colors">
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 md:gap-4">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 md:gap-3 mb-2">
+                    <h3 className="text-lg md:text-xl lg:text-2xl font-heading font-bold text-brutal-text group-hover:text-brutal-yellow transition-colors truncate">
                       {meeting.name}
                     </h3>
-                    <ArrowUpRight className="w-5 h-5 text-brutal-text-secondary group-hover:text-brutal-yellow transition-colors opacity-0 group-hover:opacity-100" />
+                    <ArrowUpRight className="w-4 h-4 md:w-5 md:h-5 text-brutal-text-secondary group-hover:text-brutal-yellow transition-colors opacity-0 group-hover:opacity-100 flex-shrink-0" />
                   </div>
 
-                  <div className="flex flex-wrap items-center gap-4 text-sm">
+                  <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2 sm:gap-4 text-xs md:text-sm">
                     <div className="flex items-center gap-2 text-brutal-text-secondary">
-                      <Calendar className="w-4 h-4" />
+                      <Calendar className="w-3 h-3 md:w-4 md:h-4 flex-shrink-0" />
                       <span className="font-mono">{meeting.day}s at {meeting.time}</span>
                     </div>
                     <div className="flex items-center gap-2 text-brutal-text-secondary">
-                      <MapPin className="w-4 h-4" />
-                      <span>{meeting.location}</span>
+                      <MapPin className="w-3 h-3 md:w-4 md:h-4 flex-shrink-0" />
+                      <span className="truncate">{meeting.location}</span>
                     </div>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3">
-                  <span className="px-3 py-1 bg-brutal-text/5 border-2 border-brutal-text/20 rounded-full text-xs font-mono uppercase tracking-wider text-brutal-text-secondary">
+                <div className="flex items-center gap-2 md:gap-3 mt-2 md:mt-0">
+                  <span className="px-2 md:px-3 py-1 bg-brutal-text/5 border-2 border-brutal-text/20 rounded-full text-xs font-mono uppercase tracking-wider text-brutal-text-secondary">
                     {meeting.type}
                   </span>
                   
-                  {/* Action buttons */}
-                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  {/* Action buttons - always visible on mobile */}
+                  <div className="flex items-center gap-1 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                     <button
                       onClick={(e) => { e.stopPropagation(); handleEdit(meeting); }}
                       className="p-2 text-brutal-text-secondary hover:text-brutal-yellow transition-colors"
@@ -169,7 +182,7 @@ export function MeetingsSection() {
         </div>
 
         {/* Mobile Add Button */}
-        <div className="px-[6vw] mt-8 md:hidden">
+        <div className="px-4 md:px-[6vw] mt-6 md:mt-8 md:hidden">
           <button
             onClick={handleAdd}
             className="w-full brutal-btn flex items-center justify-center gap-2"

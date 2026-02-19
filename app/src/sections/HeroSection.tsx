@@ -1,7 +1,7 @@
-import { useRef, useLayoutEffect, useState } from 'react';
+import { useRef, useLayoutEffect, useState, useEffect } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { CheckCircle, ArrowRight } from 'lucide-react';
+import { CheckCircle, ArrowRight, Menu, X } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import { CheckInModal } from '../components/CheckInModal';
 
@@ -15,6 +15,18 @@ export function HeroSection() {
   
   const canCheckInToday = useStore((state) => state.canCheckInToday());
   const [showCheckInModal, setShowCheckInModal] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
+
+  // Detect mobile viewport
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   useLayoutEffect(() => {
     const section = sectionRef.current;
@@ -23,6 +35,9 @@ export function HeroSection() {
     const header = headerRef.current;
 
     if (!section || !leftPanel || !rightPanel || !header) return;
+
+    // Skip GSAP animations on mobile for better performance
+    if (isMobile) return;
 
     const ctx = gsap.context(() => {
       // Auto-play entrance animation on page load
@@ -53,13 +68,22 @@ export function HeroSection() {
     }, section);
 
     return () => ctx.revert();
-  }, []);
+  }, [isMobile]);
 
   const scrollToHistory = () => {
     const element = document.getElementById('history');
     if (element) {
       element.scrollIntoView({ behavior: 'smooth' });
     }
+    setShowMobileMenu(false);
+  };
+
+  const scrollToSection = (id: string) => {
+    const element = document.getElementById(id);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
+    setShowMobileMenu(false);
   };
 
   return (
@@ -67,53 +91,79 @@ export function HeroSection() {
       <section
         ref={sectionRef}
         id="dashboard"
-        className="relative w-full h-screen bg-brutal-bg overflow-hidden z-10"
+        className="relative w-full min-h-screen bg-brutal-bg overflow-hidden z-10"
       >
         {/* Subtle vignette */}
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(11,12,15,0.4)_100%)]" />
 
         {/* Header */}
-        <div ref={headerRef} className="absolute top-0 left-0 right-0 z-20 px-[4vw] py-[3vh]">
+        <div ref={headerRef} className="absolute top-0 left-0 right-0 z-20 px-4 md:px-[4vw] py-4 md:py-[3vh]">
           <div className="flex items-center justify-between">
-            <span className="font-heading font-bold text-2xl text-brutal-text">AA Tracker</span>
+            <span className="font-heading font-bold text-xl md:text-2xl text-brutal-text">AA Tracker</span>
+            
+            {/* Desktop Nav */}
             <nav className="hidden md:flex items-center gap-6">
               {['Dashboard', 'Meetings', 'History', 'Treasury'].map((item) => (
                 <button
                   key={item}
+                  onClick={() => scrollToSection(item.toLowerCase())}
                   className="font-mono text-sm uppercase tracking-wider text-brutal-text-secondary hover:text-brutal-text transition-colors"
                 >
                   {item}
                 </button>
               ))}
             </nav>
+
+            {/* Mobile Menu Button */}
+            <button
+              className="md:hidden p-2 text-brutal-text"
+              onClick={() => setShowMobileMenu(!showMobileMenu)}
+            >
+              {showMobileMenu ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            </button>
           </div>
+
+          {/* Mobile Menu */}
+          {showMobileMenu && (
+            <div className="md:hidden absolute top-full left-0 right-0 bg-brutal-bg border-b-2 border-brutal-text/10 p-4">
+              {['Dashboard', 'Meetings', 'History', 'Treasury'].map((item) => (
+                <button
+                  key={item}
+                  onClick={() => scrollToSection(item.toLowerCase())}
+                  className="block w-full text-left py-3 font-mono text-sm uppercase tracking-wider text-brutal-text-secondary hover:text-brutal-text transition-colors"
+                >
+                  {item}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
-        {/* Content Container */}
-        <div className="relative w-full h-full flex items-center px-[6vw] pt-[10vh]">
+        {/* Content Container - Mobile: stacked, Desktop: side by side */}
+        <div className="relative w-full min-h-screen flex flex-col md:flex-row items-center justify-center px-4 md:px-[6vw] pt-20 md:pt-[10vh] pb-8 md:pb-0 gap-4 md:gap-0">
           {/* Left Panel - Greeting */}
           <div
             ref={leftPanelRef}
-            className="brutal-panel absolute left-[6vw] top-[18vh] w-[46vw] h-[64vh] p-8 flex flex-col justify-between"
+            className="brutal-panel w-full md:absolute md:left-[6vw] md:top-[18vh] md:w-[46vw] md:h-[64vh] p-6 md:p-8 flex flex-col justify-between"
           >
             <div>
               <span className="eyebrow">Dashboard</span>
-              <h1 className="text-clamp-h1 font-heading font-bold text-brutal-text mt-6">
+              <h1 className="text-3xl md:text-clamp-h1 font-heading font-bold text-brutal-text mt-4 md:mt-6">
                 Welcome back.
               </h1>
-              <p className="text-xl md:text-2xl text-brutal-text-secondary mt-4 font-heading">
+              <p className="text-lg md:text-xl lg:text-2xl text-brutal-text-secondary mt-4 font-heading">
                 One day. One meeting. One block.
               </p>
             </div>
 
             <div>
-              <p className="text-clamp-body text-brutal-text-secondary max-w-md">
+              <p className="text-sm md:text-clamp-body text-brutal-text-secondary max-w-md">
                 Track attendance, keep your streak alive, and stay honest with the treasury.
               </p>
               {/* Decorative bracket motif */}
-              <div className="mt-8 flex gap-2">
-                <div className="w-8 h-8 border-l-2 border-b-2 border-brutal-text/30" />
-                <div className="w-4 h-4 border-l-2 border-b-2 border-brutal-text/20" />
+              <div className="mt-6 md:mt-8 flex gap-2">
+                <div className="w-6 h-6 md:w-8 md:h-8 border-l-2 border-b-2 border-brutal-text/30" />
+                <div className="w-3 h-3 md:w-4 md:h-4 border-l-2 border-b-2 border-brutal-text/20" />
               </div>
             </div>
           </div>
@@ -121,19 +171,19 @@ export function HeroSection() {
           {/* Right Panel - Check In */}
           <div
             ref={rightPanelRef}
-            className="brutal-panel absolute left-[54vw] top-[18vh] w-[40vw] h-[64vh] p-8 flex flex-col"
+            className="brutal-panel w-full md:absolute md:left-[54vw] md:top-[18vh] md:w-[40vw] md:h-[64vh] p-6 md:p-8 flex flex-col"
           >
             {/* Status dot */}
-            <div className="absolute top-6 right-6 flex items-center gap-2">
-              <span className="font-mono text-xs uppercase tracking-wider text-brutal-text-secondary">
+            <div className="absolute top-4 right-4 md:top-6 md:right-6 flex items-center gap-2">
+              <span className="font-mono text-xs uppercase tracking-wider text-brutal-text-secondary hidden sm:inline">
                 {canCheckInToday ? 'Ready' : 'Checked In'}
               </span>
               <div className={`w-3 h-3 rounded-full ${canCheckInToday ? 'bg-brutal-green animate-pulse' : 'bg-brutal-gray'}`} />
             </div>
 
-            <div className="mt-8">
-              <h2 className="text-clamp-h2 font-heading font-bold text-brutal-text">Check In</h2>
-              <p className="text-clamp-body text-brutal-text-secondary mt-4">
+            <div className="mt-4 md:mt-8">
+              <h2 className="text-2xl md:text-clamp-h2 font-heading font-bold text-brutal-text">Check In</h2>
+              <p className="text-sm md:text-clamp-body text-brutal-text-secondary mt-4">
                 {canCheckInToday 
                   ? "Attended a meeting today? Log it now and keep the streak going."
                   : "You've already checked in today. Great job!"
@@ -141,11 +191,11 @@ export function HeroSection() {
               </p>
             </div>
 
-            <div className="mt-auto">
+            <div className="mt-auto pt-6">
               <button
                 onClick={() => canCheckInToday && setShowCheckInModal(true)}
                 disabled={!canCheckInToday}
-                className={`w-full flex items-center justify-center gap-3 text-lg px-6 py-3 rounded-[10px] border-[3px] border-[#F4F6FA] transition-all ${
+                className={`w-full flex items-center justify-center gap-3 text-base md:text-lg px-4 md:px-6 py-3 rounded-[10px] border-[3px] border-[#F4F6FA] transition-all ${
                   canCheckInToday 
                     ? 'bg-brutal-yellow text-brutal-bg font-semibold shadow-brutal-sm hover:shadow-brutal hover:-translate-y-0.5' 
                     : 'bg-brutal-text/10 text-brutal-text-secondary cursor-not-allowed'
