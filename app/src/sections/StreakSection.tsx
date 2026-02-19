@@ -37,7 +37,10 @@ export function StreakSection() {
 
     if (!section || !tileA || !tileB || !tileC) return;
     
-    if (isMobile) return;
+    if (isMobile) {
+      gsap.set([tileA, tileB, tileC], { opacity: 1, x: 0, y: 0 });
+      return;
+    }
 
     const ctx = gsap.context(() => {
       const scrollTl = gsap.timeline({

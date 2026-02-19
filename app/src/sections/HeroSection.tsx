@@ -37,7 +37,11 @@ export function HeroSection() {
     if (!section || !leftPanel || !rightPanel || !header) return;
 
     // Skip GSAP animations on mobile for better performance
-    if (isMobile) return;
+    if (isMobile) {
+      // Make sure panels are visible without animation
+      gsap.set([header, leftPanel, rightPanel], { opacity: 1, x: 0 });
+      return;
+    }
 
     const ctx = gsap.context(() => {
       // Auto-play entrance animation on page load

@@ -17,9 +17,25 @@ function App() {
   const isAuthenticated = useStore((state) => state.isAuthenticated);
   const [activeSection] = useState('dashboard');
   const [isReady, setIsReady] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   useEffect(() => {
     if (!isAuthenticated) return;
+    
+    // Skip complex scroll snap on mobile
+    if (isMobile) {
+      setIsReady(true);
+      return;
+    }
 
     // Wait for all sections to mount and create their ScrollTriggers
     const timer = setTimeout(() => {
@@ -70,7 +86,7 @@ function App() {
     return () => {
       clearTimeout(timer);
     };
-  }, [isAuthenticated]);
+  }, [isAuthenticated, isMobile]);
 
   // Handle reduced motion preference
   useEffect(() => {
