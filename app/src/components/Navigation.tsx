@@ -88,7 +88,7 @@ export function Navigation({ activeSection = 'dashboard' }: NavigationProps) {
             <div className="flex items-center gap-3 ml-4 pl-4 border-l-2 border-brutal-text/10">
               {user && (
                 <span className="text-sm text-brutal-text-secondary">
-                  {user.name}
+                  {user.email}
                 </span>
               )}
               <button

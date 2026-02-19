@@ -7,20 +7,43 @@ export function LoginPage() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+  const [isSignup, setIsSignup] = useState(false);
+  const [loading, setLoading] = useState(false);
   const login = useStore((state) => state.login);
+  const signup = useStore((state) => state.signup);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setLoading(true);
     
     if (!email || !password) {
       setError('Please enter both email and password');
+      setLoading(false);
       return;
     }
     
-    const success = login(email, password);
-    if (!success) {
-      setError('Invalid credentials. Password must be at least 4 characters.');
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters');
+      setLoading(false);
+      return;
+    }
+    
+    try {
+      const success = isSignup 
+        ? await signup(email, password)
+        : await login(email, password);
+        
+      if (!success) {
+        setError(isSignup 
+          ? 'Failed to create account. Email may already be in use.' 
+          : 'Invalid email or password.'
+        );
+      }
+    } catch (err) {
+      setError('An error occurred. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -92,16 +115,29 @@ export function LoginPage() {
           )}
 
           {/* Submit Button */}
-          <button type="submit" className="brutal-btn w-full py-4 text-lg">
-            Sign In
+          <button 
+            type="submit" 
+            className="brutal-btn w-full py-4 text-lg"
+            disabled={loading}
+          >
+            {loading ? 'Please wait...' : (isSignup ? 'Create Account' : 'Sign In')}
           </button>
         </form>
 
-        {/* Demo hint */}
+        {/* Toggle Signup/Login */}
         <div className="mt-6 text-center">
-          <p className="text-xs text-brutal-text-secondary">
-            Demo: Enter any email and a password of 4+ characters
-          </p>
+          <button
+            type="button"
+            onClick={() => {
+              setIsSignup(!isSignup);
+              setError('');
+            }}
+            className="text-sm text-brutal-yellow hover:underline"
+          >
+            {isSignup 
+              ? 'Already have an account? Sign in' 
+              : 'Need an account? Create one'}
+          </button>
         </div>
 
         {/* Footer */}
