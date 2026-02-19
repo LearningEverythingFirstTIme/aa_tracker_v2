@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useStore } from '../store/useStore';
 import { X, Calendar, CheckCircle, MapPin } from 'lucide-react';
 
@@ -70,7 +71,8 @@ export function CheckInModal({ isOpen, onClose }: CheckInModalProps) {
     return `${meeting.day}s at ${meeting.time}`;
   };
 
-  return (
+  // Use createPortal to render outside the main DOM tree
+  return createPortal(
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
       {/* Backdrop */}
       <div className="absolute inset-0 bg-brutal-bg/90 backdrop-blur-sm" onClick={onClose} />
@@ -221,6 +223,7 @@ export function CheckInModal({ isOpen, onClose }: CheckInModalProps) {
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
