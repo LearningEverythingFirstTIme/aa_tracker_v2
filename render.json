@@ -1,0 +1,13 @@
+{
+  "version": "1",
+  "build": {
+    "command": "cd app && npm install && npm run build",
+    "output": "app/dist"
+  },
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
+  ]
+}
