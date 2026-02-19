@@ -10,6 +10,7 @@ import { TreasurySection } from './sections/TreasurySection';
 import { MeetingsSection } from './sections/MeetingsSection';
 import { HistorySection } from './sections/HistorySection';
 import { FooterSection } from './sections/FooterSection';
+import { TreasuryPage } from './pages/TreasuryPage';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -18,6 +19,7 @@ function App() {
   const [activeSection] = useState('dashboard');
   const [isReady, setIsReady] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [currentPage, setCurrentPage] = useState<'dashboard' | 'treasury'>('dashboard');
 
   useEffect(() => {
     const checkMobile = () => {
@@ -30,6 +32,10 @@ function App() {
 
   useEffect(() => {
     if (!isAuthenticated) return;
+    if (currentPage !== 'dashboard') {
+      setIsReady(true);
+      return;
+    }
     
     // Skip complex scroll snap on mobile
     if (isMobile) {
@@ -86,7 +92,7 @@ function App() {
     return () => {
       clearTimeout(timer);
     };
-  }, [isAuthenticated, isMobile]);
+  }, [isAuthenticated, isMobile, currentPage]);
 
   // Handle reduced motion preference
   useEffect(() => {
@@ -116,19 +122,27 @@ function App() {
     return <LoginPage />;
   }
 
+  // Treasury Page
+  if (currentPage === 'treasury') {
+    return <TreasuryPage onBack={() => setCurrentPage('dashboard')} />;
+  }
+
   return (
     <div className="relative bg-brutal-bg min-h-screen">
       {/* Grain Overlay */}
       <div className="grain-overlay" />
 
       {/* Navigation */}
-      <Navigation activeSection={activeSection} />
+      <Navigation 
+        activeSection={activeSection} 
+        onNavigate={setCurrentPage}
+      />
 
       {/* Main Content */}
       <main className={`relative transition-opacity duration-300 ${isReady ? 'opacity-100' : 'opacity-0'}`}>
         <HeroSection />
         <StreakSection />
-        <TreasurySection />
+        <TreasurySection onViewFull={() => setCurrentPage('treasury')} />
         <MeetingsSection />
         <HistorySection />
         <FooterSection />

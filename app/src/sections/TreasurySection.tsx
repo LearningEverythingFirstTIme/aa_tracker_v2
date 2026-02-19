@@ -7,7 +7,11 @@ import { LedgerModal } from '../components/LedgerModal';
 
 gsap.registerPlugin(ScrollTrigger);
 
-export function TreasurySection() {
+interface TreasurySectionProps {
+  onViewFull?: () => void;
+}
+
+export function TreasurySection({ onViewFull }: TreasurySectionProps) {
   const sectionRef = useRef<HTMLElement>(null);
   const leftTileRef = useRef<HTMLDivElement>(null);
   const rightTileRef = useRef<HTMLDivElement>(null);
@@ -80,7 +84,6 @@ export function TreasurySection() {
       >
         {/* Mobile: Stacked layout */}
         <div className="md:hidden px-4 space-y-4">
-          {/* Treasury Card */}
           <div className="brutal-panel p-6">
             <div className="flex items-center gap-3">
               <Wallet className="w-5 h-5 text-brutal-yellow" />
@@ -99,7 +102,7 @@ export function TreasurySection() {
               </div>
             </div>
 
-            <div className="mt-6">
+            <div className="mt-6 space-y-3">
               <button
                 onClick={() => setShowLedgerModal(true)}
                 className="brutal-btn w-full flex items-center justify-center gap-2"
@@ -108,17 +111,18 @@ export function TreasurySection() {
                 Add Contribution
               </button>
 
-              <button 
-                onClick={() => setShowLedgerModal(true)}
-                className="mt-3 w-full flex items-center justify-center gap-2 text-brutal-text-secondary hover:text-brutal-yellow transition-colors font-mono text-sm uppercase tracking-wider"
-              >
-                View ledger
-                <ArrowRight className="w-4 h-4" />
-              </button>
+              {onViewFull && (
+                <button 
+                  onClick={onViewFull}
+                  className="w-full flex items-center justify-center gap-2 text-brutal-text-secondary hover:text-brutal-yellow transition-colors font-mono text-sm uppercase tracking-wider"
+                >
+                  View full treasury
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              )}
             </div>
           </div>
 
-          {/* Recent Attendance Card */}
           <div className="brutal-panel p-6">
             <div className="flex items-center gap-3">
               <Calendar className="w-5 h-5 text-brutal-yellow" />
@@ -174,7 +178,7 @@ export function TreasurySection() {
               </div>
             </div>
 
-            <div className="mt-auto">
+            <div className="mt-auto space-y-4">
               <button
                 onClick={() => setShowLedgerModal(true)}
                 className="brutal-btn w-full flex items-center justify-center gap-3"
@@ -183,13 +187,15 @@ export function TreasurySection() {
                 Add Contribution
               </button>
 
-              <button 
-                onClick={() => setShowLedgerModal(true)}
-                className="mt-4 w-full flex items-center justify-center gap-2 text-brutal-text-secondary hover:text-brutal-yellow transition-colors font-mono text-sm uppercase tracking-wider"
-              >
-                View ledger
-                <ArrowRight className="w-4 h-4" />
-              </button>
+              {onViewFull && (
+                <button 
+                  onClick={onViewFull}
+                  className="w-full flex items-center justify-center gap-2 text-brutal-text-secondary hover:text-brutal-yellow transition-colors font-mono text-sm uppercase tracking-wider"
+                >
+                  View full treasury
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              )}
             </div>
           </div>
 

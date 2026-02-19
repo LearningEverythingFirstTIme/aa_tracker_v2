@@ -4,9 +4,10 @@ import { useStore } from '../store/useStore';
 
 interface NavigationProps {
   activeSection?: string;
+  onNavigate?: (page: 'dashboard' | 'treasury') => void;
 }
 
-export function Navigation({ activeSection = 'dashboard' }: NavigationProps) {
+export function Navigation({ activeSection = 'dashboard', onNavigate }: NavigationProps) {
   const [isVisible, setIsVisible] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const logout = useStore((state) => state.logout);
@@ -24,6 +25,10 @@ export function Navigation({ activeSection = 'dashboard' }: NavigationProps) {
   }, []);
 
   const scrollToSection = (sectionId: string) => {
+    if (sectionId === 'treasury' && onNavigate) {
+      onNavigate('treasury');
+      return;
+    }
     const element = document.getElementById(sectionId);
     if (element) {
       element.scrollIntoView({ behavior: 'smooth' });
