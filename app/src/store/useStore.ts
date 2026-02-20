@@ -315,9 +315,8 @@ export const useStore = create<StoreState>((set, get) => ({
   },
 
   canCheckInToday: () => {
-    const { checkIns } = get();
-    const today = getToday();
-    return !checkIns.some((c) => c.date === today);
+    // Always allow check-ins for multiple meetings per day
+    return true;
   },
 
   getAttendedThisWeek: () => {

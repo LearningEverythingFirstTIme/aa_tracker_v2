@@ -189,33 +189,25 @@ export function HeroSection() {
             {/* Status dot */}
             <div className="absolute top-4 right-4 md:top-6 md:right-6 flex items-center gap-2">
               <span className="font-mono text-xs uppercase tracking-wider text-brutal-text-secondary hidden sm:inline">
-                {canCheckInToday ? 'Ready' : 'Checked In'}
+                Ready
               </span>
-              <div className={`w-3 h-3 rounded-full ${canCheckInToday ? 'bg-brutal-green animate-pulse' : 'bg-brutal-gray'}`} />
+              <div className="w-3 h-3 rounded-full bg-brutal-green animate-pulse" />
             </div>
 
             <div className="mt-4 md:mt-8">
               <h2 className="text-2xl md:text-clamp-h2 font-heading font-bold text-brutal-text">Check In</h2>
               <p className="text-sm md:text-clamp-body text-brutal-text-secondary mt-4">
-                {canCheckInToday 
-                  ? "Attended a meeting today? Log it now and keep the streak going."
-                  : "You've already checked in today. Great job!"
-                }
+                Attended a meeting? Log it now and keep the streak going. Multiple check-ins per day supported.
               </p>
             </div>
 
             <div className="mt-auto pt-6">
               <button
-                onClick={() => canCheckInToday && setShowCheckInModal(true)}
-                disabled={!canCheckInToday}
-                className={`w-full flex items-center justify-center gap-3 text-base md:text-lg px-4 md:px-6 py-3 rounded-[10px] border-[3px] border-[#F4F6FA] transition-all ${
-                  canCheckInToday 
-                    ? 'bg-brutal-yellow text-brutal-bg font-semibold shadow-brutal-sm hover:shadow-brutal hover:-translate-y-0.5' 
-                    : 'bg-brutal-text/10 text-brutal-text-secondary cursor-not-allowed'
-                }`}
+                onClick={() => setShowCheckInModal(true)}
+                className="w-full flex items-center justify-center gap-3 text-base md:text-lg px-4 md:px-6 py-3 rounded-[10px] border-[3px] border-[#F4F6FA] transition-all bg-brutal-yellow text-brutal-bg font-semibold shadow-brutal-sm hover:shadow-brutal hover:-translate-y-0.5"
               >
                 <CheckCircle className="w-5 h-5" />
-                {canCheckInToday ? 'Check In Today' : 'Already Checked In'}
+                Check In Now
               </button>
 
               <button 

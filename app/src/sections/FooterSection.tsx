@@ -100,24 +100,16 @@ export function FooterSection() {
               Keep building the streak.
             </h2>
             <p className="text-clamp-body text-brutal-text-secondary max-w-lg mb-8">
-              {canCheckInToday 
-                ? "Check in today. The next 24 hours are the only ones that matter."
-                : "You've already checked in today. Keep up the great work!"
-              }
+              Check in today. The next 24 hours are the only ones that matter. Multiple meetings? Log them all.
             </p>
 
             <div className="flex flex-col sm:flex-row items-center gap-4">
               <button
-                onClick={() => canCheckInToday && setShowCheckInModal(true)}
-                disabled={!canCheckInToday}
-                className={`flex items-center gap-3 px-6 py-3 rounded-[10px] border-[3px] border-[#F4F6FA] transition-all ${
-                  canCheckInToday 
-                    ? 'bg-brutal-yellow text-brutal-bg font-semibold shadow-brutal-sm hover:shadow-brutal hover:-translate-y-0.5' 
-                    : 'bg-brutal-text/10 text-brutal-text-secondary cursor-not-allowed'
-                }`}
+                onClick={() => setShowCheckInModal(true)}
+                className="flex items-center gap-3 px-6 py-3 rounded-[10px] border-[3px] border-[#F4F6FA] transition-all bg-brutal-yellow text-brutal-bg font-semibold shadow-brutal-sm hover:shadow-brutal hover:-translate-y-0.5"
               >
                 <CheckCircle className="w-5 h-5" />
-                {canCheckInToday ? 'Check In Now' : 'Already Checked In'}
+                Check In Now
               </button>
 
               <button
