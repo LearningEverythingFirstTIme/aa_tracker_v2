@@ -2,7 +2,6 @@ import { useRef, useLayoutEffect, useState, useEffect } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { CheckCircle, ArrowRight, Menu, X } from 'lucide-react';
-import { useStore } from '../store/useStore';
 import { CheckInModal } from '../components/CheckInModal';
 
 gsap.registerPlugin(ScrollTrigger);
