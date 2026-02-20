@@ -13,7 +13,6 @@ export function HeroSection() {
   const rightPanelRef = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLDivElement>(null);
   
-  const canCheckInToday = useStore((state) => state.canCheckInToday());
   const [showCheckInModal, setShowCheckInModal] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);

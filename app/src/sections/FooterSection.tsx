@@ -12,7 +12,6 @@ export function FooterSection() {
   const ctaTileRef = useRef<HTMLDivElement>(null);
   const footerRef = useRef<HTMLDivElement>(null);
   
-  const canCheckInToday = useStore((state) => state.canCheckInToday());
   const logout = useStore((state) => state.logout);
   const [showCheckInModal, setShowCheckInModal] = useState(false);
 
