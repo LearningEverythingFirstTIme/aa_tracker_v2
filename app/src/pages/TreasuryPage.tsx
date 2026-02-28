@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useStore, type TreasuryTransaction } from '../store/useStore';
+import { ExportModal } from '../components/ExportModal';
 import { 
   ArrowLeft, 
   Plus, 
@@ -7,7 +8,8 @@ import {
   TrendingDown, 
   Wallet,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Download
 } from 'lucide-react';
 
 interface TreasuryPageProps {
@@ -17,6 +19,7 @@ interface TreasuryPageProps {
 export function TreasuryPage({ onBack }: TreasuryPageProps) {
   const { transactions, addTransaction, deleteTransaction } = useStore();
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showExportModal, setShowExportModal] = useState(false);
   const [currentMonth, setCurrentMonth] = useState(new Date());
 
   // Filter transactions by current month
@@ -88,13 +91,22 @@ export function TreasuryPage({ onBack }: TreasuryPageProps) {
           
           <h1 className="font-heading font-bold text-xl text-brutal-text">Treasury</h1>
           
-          <button
-            onClick={() => setShowAddModal(true)}
-            className="flex items-center gap-2 brutal-btn py-2 px-4"
-          >
-            <Plus className="w-4 h-4" />
-            <span className="hidden sm:inline">Add Entry</span>
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowExportModal(true)}
+              className="flex items-center gap-2 py-2 px-4 border-2 border-brutal-text/20 rounded-lg text-brutal-text-secondary hover:text-brutal-text hover:border-brutal-text/40 transition-colors"
+            >
+              <Download className="w-4 h-4" />
+              <span className="hidden sm:inline">Export</span>
+            </button>
+            <button
+              onClick={() => setShowAddModal(true)}
+              className="flex items-center gap-2 brutal-btn py-2 px-4"
+            >
+              <Plus className="w-4 h-4" />
+              <span className="hidden sm:inline">Add Entry</span>
+            </button>
+          </div>
         </div>
       </header>
 
@@ -232,6 +244,14 @@ export function TreasuryPage({ onBack }: TreasuryPageProps) {
         <AddEntryModal
           onClose={() => setShowAddModal(false)}
           onAdd={addTransaction}
+        />
+      )}
+
+      {/* Export Modal */}
+      {showExportModal && (
+        <ExportModal
+          isOpen={showExportModal}
+          onClose={() => setShowExportModal(false)}
         />
       )}
     </div>
