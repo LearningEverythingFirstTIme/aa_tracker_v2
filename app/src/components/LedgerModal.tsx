@@ -22,20 +22,25 @@ export function LedgerModal({ isOpen, onClose }: LedgerModalProps) {
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const amount = parseFloat(formData.amount);
     if (isNaN(amount) || amount <= 0) return;
     
-    addTransaction({
-      date: new Date().toISOString().split('T')[0],
-      amount,
-      type: formData.type,
-      note: formData.note || (formData.type === 'contribution' ? 'Contribution' : 'Expense'),
-    });
-    
-    setFormData({ amount: '', type: 'contribution', note: '' });
-    setShowAddForm(false);
+    try {
+      await addTransaction({
+        date: new Date().toISOString().split('T')[0],
+        amount,
+        type: formData.type,
+        note: formData.note || (formData.type === 'contribution' ? 'Contribution' : 'Expense'),
+      });
+      
+      setFormData({ amount: '', type: 'contribution', note: '' });
+      setShowAddForm(false);
+    } catch (error) {
+      console.error('Failed to add transaction:', error);
+      alert('Failed to add transaction. Please make sure you are logged in.');
+    }
   };
 
   const formatDate = (dateStr: string) => {

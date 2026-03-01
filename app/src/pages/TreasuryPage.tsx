@@ -275,14 +275,20 @@ function AddEntryModal({ onClose, onAdd }: AddEntryModalProps) {
     if (!amount || !note) return;
 
     setSubmitting(true);
-    await onAdd({
-      date,
-      amount: parseFloat(amount),
-      type,
-      note,
-    });
-    setSubmitting(false);
-    onClose();
+    try {
+      await onAdd({
+        date,
+        amount: parseFloat(amount),
+        type,
+        note,
+      });
+      onClose();
+    } catch (error) {
+      console.error('Failed to add transaction:', error);
+      alert('Failed to add transaction. Please make sure you are logged in.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
