@@ -24,13 +24,14 @@ export function TreasuryPage({ onBack }: TreasuryPageProps) {
 
   // Filter transactions by current month
   const monthlyTransactions = useMemo(() => {
-    const startOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
-    const endOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0);
+    const year = currentMonth.getFullYear();
+    const month = currentMonth.getMonth();
     
     return transactions
       .filter(t => {
-        const tDate = new Date(t.date);
-        return tDate >= startOfMonth && tDate <= endOfMonth;
+        // Parse YYYY-MM-DD string without timezone issues
+        const [tYear, tMonth] = t.date.split('-').map(Number);
+        return tYear === year && (tMonth - 1) === month;
       })
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   }, [transactions, currentMonth]);
