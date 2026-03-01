@@ -256,11 +256,28 @@ export const useStore = create<StoreState>((set, get) => ({
   // Treasury actions
   addTransaction: async (transaction) => {
     const user = get().user;
-    if (!user) throw new Error('User not authenticated');
+    if (!user) {
+      console.error('addTransaction: No user logged in');
+      throw new Error('User not authenticated');
+    }
 
-    const newTransaction = { ...transaction, id: generateId() };
-    await setDoc(doc(db, 'users', user.uid, 'transactions', newTransaction.id), newTransaction);
-    set((state) => ({ transactions: [newTransaction, ...state.transactions] }));
+    console.log('addTransaction: Starting with user:', user.uid);
+    console.log('addTransaction: Transaction data:', transaction);
+
+    try {
+      const newTransaction = { ...transaction, id: generateId() };
+      const docRef = doc(db, 'users', user.uid, 'transactions', newTransaction.id);
+      console.log('addTransaction: Writing to Firestore path:', docRef.path);
+      
+      await setDoc(docRef, newTransaction);
+      console.log('addTransaction: Firestore write successful');
+      
+      set((state) => ({ transactions: [newTransaction, ...state.transactions] }));
+      console.log('addTransaction: Local state updated');
+    } catch (error) {
+      console.error('addTransaction: Firestore error:', error);
+      throw error;
+    }
   },
 
   deleteTransaction: async (id) => {

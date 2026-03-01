@@ -269,12 +269,15 @@ function AddEntryModal({ onClose, onAdd }: AddEntryModalProps) {
   const [note, setNote] = useState('');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!amount || !note) return;
 
     setSubmitting(true);
+    setError(null);
+    
     try {
       await onAdd({
         date,
@@ -283,9 +286,9 @@ function AddEntryModal({ onClose, onAdd }: AddEntryModalProps) {
         note,
       });
       onClose();
-    } catch (error) {
-      console.error('Failed to add transaction:', error);
-      alert('Failed to add transaction. Please make sure you are logged in.');
+    } catch (err) {
+      console.error('Failed to add transaction:', err);
+      setError(err instanceof Error ? err.message : 'Failed to save transaction. Please check your connection and try again.');
     } finally {
       setSubmitting(false);
     }
@@ -304,6 +307,13 @@ function AddEntryModal({ onClose, onAdd }: AddEntryModalProps) {
         </div>
 
         <div className="p-6 space-y-4">
+          {/* Error Message */}
+          {error && (
+            <div className="p-4 bg-red-500/10 border-2 border-red-400 rounded-lg text-red-400 text-sm">
+              {error}
+            </div>
+          )}
+
           {/* Type Toggle */}
           <div className="flex gap-2">
             <button
