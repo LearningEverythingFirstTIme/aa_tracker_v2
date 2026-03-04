@@ -1,7 +1,8 @@
 import { useRef, useLayoutEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { User, Calendar, CheckCircle2, Plus, Edit2, Trash2 } from 'lucide-react';
+import { User, Calendar, CheckCircle2, Plus, Edit2, Trash2, X } from 'lucide-react';
 import { useStore } from '../store/useStore';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -10,13 +11,13 @@ export function HistorySection() {
   const sectionRef = useRef<HTMLElement>(null);
   const headerRef = useRef<HTMLDivElement>(null);
   const rowsRef = useRef<(HTMLDivElement | null)[]>([]);
-  
+
   const history = useStore((state) => state.history);
   const deleteHistoryItem = useStore((state) => state.deleteHistoryItem);
-  
+
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingItem, setEditingItem] = useState<typeof history[0] | null>(null);
-  
+
   // Form state for add/edit
   const [formData, setFormData] = useState({
     date: '',
@@ -99,13 +100,13 @@ export function HistorySection() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const { addHistoryItem, updateHistoryItem } = useStore.getState();
-    
+
     if (editingItem) {
       updateHistoryItem(editingItem.id, formData);
     } else {
       addHistoryItem(formData);
     }
-    
+
     setShowAddModal(false);
     setEditingItem(null);
   };
@@ -145,52 +146,59 @@ export function HistorySection() {
 
         {/* History List */}
         <div className="px-[6vw] space-y-3">
-          {history.map((item, i) => (
-            <div
-              key={item.id}
-              ref={(el) => { rowsRef.current[i] = el; }}
-              className="brutal-panel p-4 md:p-5 flex items-center gap-4 hover:border-l-brutal-yellow hover:border-l-[6px] transition-all cursor-pointer group"
-            >
-              {/* Date */}
-              <div className="flex items-center gap-2 min-w-[100px]">
-                <Calendar className="w-4 h-4 text-brutal-text-secondary" />
-                <span className="font-mono text-sm text-brutal-text-secondary">{formatDate(item.date)}</span>
-              </div>
-
-              {/* Divider */}
-              <div className="w-px h-8 bg-brutal-text/10" />
-
-              {/* Meeting Name */}
-              <div className="flex-1 flex items-center gap-3">
-                <User className="w-4 h-4 text-brutal-text-secondary group-hover:text-brutal-yellow transition-colors" />
-                <span className="text-brutal-text font-medium">{item.meeting}</span>
-              </div>
-
-              {/* Role */}
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-brutal-green" />
-                <span className="font-mono text-sm uppercase tracking-wider text-brutal-text-secondary">
-                  {item.role}
-                </span>
-              </div>
-
-              {/* Actions */}
-              <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button
-                  onClick={(e) => { e.stopPropagation(); handleEdit(item); }}
-                  className="p-2 text-brutal-text-secondary hover:text-brutal-yellow transition-colors"
-                >
-                  <Edit2 className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={(e) => { e.stopPropagation(); handleDelete(item.id); }}
-                  className="p-2 text-brutal-text-secondary hover:text-red-400 transition-colors"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              </div>
+          {history.length === 0 ? (
+            <div className="text-center py-16 text-brutal-text-secondary">
+              <p className="text-lg font-heading">No attendance records yet.</p>
+              <p className="text-sm mt-2">Check in or add a record to get started.</p>
             </div>
-          ))}
+          ) : (
+            history.map((item, i) => (
+              <div
+                key={item.id}
+                ref={(el) => { rowsRef.current[i] = el; }}
+                className="brutal-panel p-4 md:p-5 flex items-center gap-4 hover:border-l-brutal-yellow hover:border-l-[6px] transition-all cursor-pointer group"
+              >
+                {/* Date */}
+                <div className="flex items-center gap-2 min-w-[100px]">
+                  <Calendar className="w-4 h-4 text-brutal-text-secondary" />
+                  <span className="font-mono text-sm text-brutal-text-secondary">{formatDate(item.date)}</span>
+                </div>
+
+                {/* Divider */}
+                <div className="w-px h-8 bg-brutal-text/10" />
+
+                {/* Meeting Name */}
+                <div className="flex-1 flex items-center gap-3">
+                  <User className="w-4 h-4 text-brutal-text-secondary group-hover:text-brutal-yellow transition-colors" />
+                  <span className="text-brutal-text font-medium">{item.meeting}</span>
+                </div>
+
+                {/* Role */}
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-brutal-green" />
+                  <span className="font-mono text-sm uppercase tracking-wider text-brutal-text-secondary">
+                    {item.role}
+                  </span>
+                </div>
+
+                {/* Actions */}
+                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button
+                    onClick={(e) => { e.stopPropagation(); handleEdit(item); }}
+                    className="p-2 text-brutal-text-secondary hover:text-brutal-yellow transition-colors"
+                  >
+                    <Edit2 className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); handleDelete(item.id); }}
+                    className="p-2 text-brutal-text-secondary hover:text-red-400 transition-colors"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
         </div>
 
         {/* Mobile Add Button */}
@@ -203,17 +211,10 @@ export function HistorySection() {
             Add Record
           </button>
         </div>
-
-        {/* Load More */}
-        <div className="px-[6vw] mt-8 text-center">
-          <button className="px-6 py-3 border-2 border-brutal-text/20 rounded-lg text-brutal-text-secondary hover:border-brutal-yellow hover:text-brutal-yellow transition-colors font-mono text-sm uppercase tracking-wider">
-            Load more history
-          </button>
-        </div>
       </section>
 
-      {/* Add/Edit Modal */}
-      {showAddModal && (
+      {/* Add/Edit Modal — rendered in a portal to avoid z-index issues */}
+      {showAddModal && createPortal(
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-brutal-bg/90 backdrop-blur-sm" onClick={() => setShowAddModal(false)} />
           <div className="brutal-panel w-full max-w-lg relative z-10">
@@ -225,10 +226,10 @@ export function HistorySection() {
                 onClick={() => setShowAddModal(false)}
                 className="p-2 text-brutal-text-secondary hover:text-brutal-text transition-colors"
               >
-                <Trash2 className="w-5 h-5" />
+                <X className="w-5 h-5" />
               </button>
             </div>
-            
+
             <form onSubmit={handleSubmit} className="p-6 space-y-5">
               <div>
                 <label className="eyebrow block mb-2">Date</label>
@@ -240,7 +241,7 @@ export function HistorySection() {
                   required
                 />
               </div>
-              
+
               <div>
                 <label className="eyebrow block mb-2">Meeting Name</label>
                 <input
@@ -252,7 +253,7 @@ export function HistorySection() {
                   required
                 />
               </div>
-              
+
               <div>
                 <label className="eyebrow block mb-2">Role</label>
                 <select
@@ -267,7 +268,7 @@ export function HistorySection() {
                   <option value="Host">Host</option>
                 </select>
               </div>
-              
+
               <div className="flex gap-3 pt-4">
                 <button
                   type="button"
@@ -282,7 +283,8 @@ export function HistorySection() {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );

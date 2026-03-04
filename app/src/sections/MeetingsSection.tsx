@@ -1,9 +1,10 @@
-import { useRef, useLayoutEffect, useState, useEffect } from 'react';
+import { useRef, useLayoutEffect, useState } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { Calendar, MapPin, ArrowUpRight, Plus, Edit2, Trash2 } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import { MeetingModal } from '../components/MeetingModal';
+import { useIsMobile } from '../hooks/use-mobile';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -17,16 +18,7 @@ export function MeetingsSection() {
   
   const [showMeetingModal, setShowMeetingModal] = useState(false);
   const [editingMeeting, setEditingMeeting] = useState<typeof meetings[0] | null>(null);
-  const [isMobile, setIsMobile] = useState(false);
-
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
+  const isMobile = useIsMobile();
 
   useLayoutEffect(() => {
     const section = sectionRef.current;
@@ -128,6 +120,12 @@ export function MeetingsSection() {
 
         {/* Meeting Cards */}
         <div className="px-4 md:px-[6vw] space-y-4">
+          {meetings.length === 0 && (
+            <div className="text-center py-16 text-brutal-text-secondary">
+              <p className="text-lg font-heading">No meetings added yet.</p>
+              <p className="text-sm mt-2">Add a meeting to start tracking attendance.</p>
+            </div>
+          )}
           {meetings.map((meeting, i) => (
             <div
               key={meeting.id}

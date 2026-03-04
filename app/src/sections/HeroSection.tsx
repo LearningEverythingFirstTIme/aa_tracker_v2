@@ -1,8 +1,9 @@
-import { useRef, useLayoutEffect, useState, useEffect } from 'react';
+import { useRef, useLayoutEffect, useState } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { CheckCircle, ArrowRight, Menu, X } from 'lucide-react';
 import { CheckInModal } from '../components/CheckInModal';
+import { useIsMobile } from '../hooks/use-mobile';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -13,18 +14,8 @@ export function HeroSection() {
   const headerRef = useRef<HTMLDivElement>(null);
   
   const [showCheckInModal, setShowCheckInModal] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
-
-  // Detect mobile viewport
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
+  const isMobile = useIsMobile();
 
   useLayoutEffect(() => {
     const section = sectionRef.current;

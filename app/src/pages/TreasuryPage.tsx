@@ -17,7 +17,14 @@ interface TreasuryPageProps {
 }
 
 export function TreasuryPage({ onBack }: TreasuryPageProps) {
-  const { transactions, addTransaction, deleteTransaction } = useStore();
+  const { transactions, addTransaction } = useStore();
+  const deleteTransaction = useStore((state) => state.deleteTransaction);
+
+  const handleDelete = (id: string) => {
+    if (confirm('Delete this transaction?')) {
+      deleteTransaction(id);
+    }
+  };
   const [showAddModal, setShowAddModal] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
   const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -224,7 +231,7 @@ export function TreasuryPage({ onBack }: TreasuryPageProps) {
                         </td>
                         <td className="py-4 px-4">
                           <button
-                            onClick={() => deleteTransaction(t.id)}
+                            onClick={() => handleDelete(t.id)}
                             className="text-brutal-text-secondary hover:text-red-400 transition-colors"
                           >
                             ×

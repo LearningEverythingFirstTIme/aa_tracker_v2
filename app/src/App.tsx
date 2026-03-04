@@ -11,24 +11,15 @@ import { MeetingsSection } from './sections/MeetingsSection';
 import { HistorySection } from './sections/HistorySection';
 import { FooterSection } from './sections/FooterSection';
 import { TreasuryPage } from './pages/TreasuryPage';
+import { useIsMobile } from './hooks/use-mobile';
 
 gsap.registerPlugin(ScrollTrigger);
 
 function App() {
   const isAuthenticated = useStore((state) => state.isAuthenticated);
-  const [activeSection] = useState('dashboard');
   const [isReady, setIsReady] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
   const [currentPage, setCurrentPage] = useState<'dashboard' | 'treasury'>('dashboard');
-
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     if (!isAuthenticated) return;
@@ -36,7 +27,7 @@ function App() {
       setIsReady(true);
       return;
     }
-    
+
     // Skip complex scroll snap on mobile
     if (isMobile) {
       setIsReady(true);
@@ -133,10 +124,7 @@ function App() {
       <div className="grain-overlay" />
 
       {/* Navigation */}
-      <Navigation 
-        activeSection={activeSection} 
-        onNavigate={setCurrentPage}
-      />
+      <Navigation onNavigate={setCurrentPage} />
 
       {/* Main Content */}
       <main className={`relative transition-opacity duration-300 ${isReady ? 'opacity-100' : 'opacity-0'}`}>

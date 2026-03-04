@@ -9,8 +9,24 @@ export function LoginPage() {
   const [error, setError] = useState('');
   const [isSignup, setIsSignup] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [resetSent, setResetSent] = useState(false);
   const login = useStore((state) => state.login);
   const signup = useStore((state) => state.signup);
+  const resetPassword = useStore((state) => state.resetPassword);
+
+  const handleForgotPassword = async () => {
+    if (!email) {
+      setError('Enter your email address above, then click Forgot Password.');
+      return;
+    }
+    setError('');
+    const success = await resetPassword(email);
+    if (success) {
+      setResetSent(true);
+    } else {
+      setError('Could not send reset email. Check the address and try again.');
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -114,9 +130,16 @@ export function LoginPage() {
             </div>
           )}
 
+          {/* Reset success */}
+          {resetSent && (
+            <div className="p-3 bg-brutal-green/10 border-2 border-brutal-green/30 rounded-lg text-brutal-green text-sm">
+              Password reset email sent. Check your inbox.
+            </div>
+          )}
+
           {/* Submit Button */}
-          <button 
-            type="submit" 
+          <button
+            type="submit"
             className="brutal-btn w-full py-4 text-lg"
             disabled={loading}
           >
@@ -124,20 +147,30 @@ export function LoginPage() {
           </button>
         </form>
 
-        {/* Toggle Signup/Login */}
-        <div className="mt-6 text-center">
+        {/* Toggle Signup/Login + Forgot Password */}
+        <div className="mt-6 text-center space-y-2">
           <button
             type="button"
             onClick={() => {
               setIsSignup(!isSignup);
               setError('');
+              setResetSent(false);
             }}
-            className="text-sm text-brutal-yellow hover:underline"
+            className="text-sm text-brutal-yellow hover:underline block w-full"
           >
-            {isSignup 
-              ? 'Already have an account? Sign in' 
+            {isSignup
+              ? 'Already have an account? Sign in'
               : 'Need an account? Create one'}
           </button>
+          {!isSignup && (
+            <button
+              type="button"
+              onClick={handleForgotPassword}
+              className="text-sm text-brutal-text-secondary hover:text-brutal-text transition-colors"
+            >
+              Forgot password?
+            </button>
+          )}
         </div>
 
         {/* Footer */}

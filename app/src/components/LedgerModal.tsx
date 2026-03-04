@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useStore } from '../store/useStore';
 import { X, Plus, Trash2, ArrowDownLeft, ArrowUpRight, DollarSign } from 'lucide-react';
 
@@ -12,7 +13,7 @@ export function LedgerModal({ isOpen, onClose }: LedgerModalProps) {
   const addTransaction = useStore((state) => state.addTransaction);
   const deleteTransaction = useStore((state) => state.deleteTransaction);
   const getBalance = useStore((state) => state.getBalance);
-  
+
   const [showAddForm, setShowAddForm] = useState(false);
   const [formData, setFormData] = useState({
     amount: '',
@@ -26,7 +27,7 @@ export function LedgerModal({ isOpen, onClose }: LedgerModalProps) {
     e.preventDefault();
     const amount = parseFloat(formData.amount);
     if (isNaN(amount) || amount <= 0) return;
-    
+
     try {
       await addTransaction({
         date: new Date().toISOString().split('T')[0],
@@ -34,7 +35,7 @@ export function LedgerModal({ isOpen, onClose }: LedgerModalProps) {
         type: formData.type,
         note: formData.note || (formData.type === 'contribution' ? 'Contribution' : 'Expense'),
       });
-      
+
       setFormData({ amount: '', type: 'contribution', note: '' });
       setShowAddForm(false);
     } catch (error) {
@@ -43,16 +44,22 @@ export function LedgerModal({ isOpen, onClose }: LedgerModalProps) {
     }
   };
 
+  const handleDelete = (id: string) => {
+    if (confirm('Delete this transaction?')) {
+      deleteTransaction(id);
+    }
+  };
+
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   };
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
       {/* Backdrop */}
       <div className="absolute inset-0 bg-brutal-bg/90 backdrop-blur-sm" onClick={onClose} />
-      
+
       {/* Modal */}
       <div className="brutal-panel w-full max-w-2xl max-h-[90vh] overflow-y-auto relative z-10">
         {/* Header */}
@@ -156,8 +163,8 @@ export function LedgerModal({ isOpen, onClose }: LedgerModalProps) {
                 >
                   <div className="flex items-center gap-3">
                     <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                      t.type === 'contribution' 
-                        ? 'bg-brutal-green/20 text-brutal-green' 
+                      t.type === 'contribution'
+                        ? 'bg-brutal-green/20 text-brutal-green'
                         : 'bg-red-500/20 text-red-400'
                     }`}>
                       {t.type === 'contribution' ? (
@@ -178,7 +185,7 @@ export function LedgerModal({ isOpen, onClose }: LedgerModalProps) {
                       {t.type === 'contribution' ? '+' : '-'}${t.amount.toFixed(2)}
                     </span>
                     <button
-                      onClick={() => deleteTransaction(t.id)}
+                      onClick={() => handleDelete(t.id)}
                       className="p-2 text-brutal-text-secondary hover:text-red-400 transition-colors"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -190,6 +197,7 @@ export function LedgerModal({ isOpen, onClose }: LedgerModalProps) {
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

@@ -11,6 +11,7 @@ import {
   createUserWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
+  sendPasswordResetEmail,
   type User
 } from 'firebase/auth';
 import { db, auth } from '../firebase/config';
@@ -54,6 +55,7 @@ interface StoreState {
   login: (email: string, password: string) => Promise<boolean>;
   signup: (email: string, password: string) => Promise<boolean>;
   logout: () => Promise<void>;
+  resetPassword: (email: string) => Promise<boolean>;
 
   // Data
   meetings: Meeting[];
@@ -89,7 +91,9 @@ interface StoreState {
   getLastCheckIn: () => string;
 }
 
-const generateId = () => Math.random().toString(36).substring(2, 9);
+// Use crypto.randomUUID() for collision-resistant IDs
+const generateId = () => crypto.randomUUID();
+
 const getToday = () => new Date().toISOString().split('T')[0];
 
 const getWeekDays = () => {
@@ -184,6 +188,16 @@ export const useStore = create<StoreState>((set, get) => ({
     set({ isAuthenticated: false, user: null });
   },
 
+  resetPassword: async (email: string) => {
+    try {
+      await sendPasswordResetEmail(auth, email);
+      return true;
+    } catch (error) {
+      console.error('Password reset error:', error);
+      return false;
+    }
+  },
+
   // Data
   meetings: [],
   history: [],
@@ -256,28 +270,12 @@ export const useStore = create<StoreState>((set, get) => ({
   // Treasury actions
   addTransaction: async (transaction) => {
     const user = get().user;
-    if (!user) {
-      console.error('addTransaction: No user logged in');
-      throw new Error('User not authenticated');
-    }
+    if (!user) throw new Error('User not authenticated');
 
-    console.log('addTransaction: Starting with user:', user.uid);
-    console.log('addTransaction: Transaction data:', transaction);
-
-    try {
-      const newTransaction = { ...transaction, id: generateId() };
-      const docRef = doc(db, 'users', user.uid, 'transactions', newTransaction.id);
-      console.log('addTransaction: Writing to Firestore path:', docRef.path);
-      
-      await setDoc(docRef, newTransaction);
-      console.log('addTransaction: Firestore write successful');
-      
-      set((state) => ({ transactions: [newTransaction, ...state.transactions] }));
-      console.log('addTransaction: Local state updated');
-    } catch (error) {
-      console.error('addTransaction: Firestore error:', error);
-      throw error;
-    }
+    const newTransaction = { ...transaction, id: generateId() };
+    const docRef = doc(db, 'users', user.uid, 'transactions', newTransaction.id);
+    await setDoc(docRef, newTransaction);
+    set((state) => ({ transactions: [newTransaction, ...state.transactions] }));
   },
 
   deleteTransaction: async (id) => {
@@ -336,18 +334,26 @@ export const useStore = create<StoreState>((set, get) => ({
     return true;
   },
 
+  // Count unique days this week with at least one check-in (cannot exceed 7)
   getAttendedThisWeek: () => {
     const { checkIns } = get();
     const weekDays = getWeekDays();
-    return checkIns.filter((c) => weekDays.includes(c.date)).length;
+    const uniqueDays = new Set(
+      checkIns.filter((c) => weekDays.includes(c.date)).map((c) => c.date)
+    );
+    return uniqueDays.size;
   },
 
   getTotalCheckIns: () => get().checkIns.length,
 
+  // Find most recent check-in date regardless of array order
   getLastCheckIn: () => {
     const { checkIns } = get();
     if (checkIns.length === 0) return 'Never';
-    const lastDate = checkIns[0].date;
+    const lastDate = checkIns.reduce(
+      (latest, c) => (c.date > latest ? c.date : latest),
+      checkIns[0].date
+    );
     const today = getToday();
     if (lastDate === today) return 'Today';
     const yesterday = new Date();
@@ -362,28 +368,43 @@ onAuthStateChanged(auth, (user) => {
   if (user) {
     useStore.setState({ isAuthenticated: true, user, loading: false });
 
-    // Load user data from Firestore
     const loadUserData = async () => {
-      const meetingsSnap = await getDocs(collection(db, 'users', user.uid, 'meetings'));
-      const historySnap = await getDocs(collection(db, 'users', user.uid, 'history'));
-      const transactionsSnap = await getDocs(collection(db, 'users', user.uid, 'transactions'));
-      const checkInsSnap = await getDocs(collection(db, 'users', user.uid, 'checkIns'));
+      try {
+        const meetingsSnap = await getDocs(collection(db, 'users', user.uid, 'meetings'));
+        const historySnap = await getDocs(collection(db, 'users', user.uid, 'history'));
+        const transactionsSnap = await getDocs(collection(db, 'users', user.uid, 'transactions'));
+        const checkInsSnap = await getDocs(collection(db, 'users', user.uid, 'checkIns'));
 
-      const meetings = meetingsSnap.docs.map(d => d.data() as Meeting);
-      const history = historySnap.docs.map(d => d.data() as HistoryItem);
-      const transactions = transactionsSnap.docs.map(d => d.data() as TreasuryTransaction);
-      const checkIns = checkInsSnap.docs.map(d => d.data() as CheckIn);
+        const meetings = meetingsSnap.docs.map(d => d.data() as Meeting);
 
-      const { current, longest } = calculateStreak(checkIns);
+        // Sort newest-first so the rest of the app can rely on consistent order
+        const history = historySnap.docs
+          .map(d => d.data() as HistoryItem)
+          .sort((a, b) => b.date.localeCompare(a.date));
 
-      useStore.setState({
-        meetings,
-        history,
-        transactions,
-        checkIns,
-        currentStreak: current,
-        longestStreak: longest,
-      });
+        const transactions = transactionsSnap.docs
+          .map(d => d.data() as TreasuryTransaction)
+          .sort((a, b) => b.date.localeCompare(a.date));
+
+        const checkIns = checkInsSnap.docs
+          .map(d => d.data() as CheckIn)
+          .sort((a, b) => b.date.localeCompare(a.date));
+
+        const { current, longest } = calculateStreak(checkIns);
+
+        useStore.setState({
+          meetings,
+          history,
+          transactions,
+          checkIns,
+          currentStreak: current,
+          longestStreak: longest,
+        });
+      } catch (error) {
+        console.error('Failed to load user data from Firestore:', error);
+        // State stays as empty arrays — the UI will show empty states
+        useStore.setState({ loading: false });
+      }
     };
 
     loadUserData();

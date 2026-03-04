@@ -1,9 +1,11 @@
-import { useRef, useLayoutEffect, useState, useEffect } from 'react';
+import { useRef, useLayoutEffect } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { Wallet, Plus, ArrowRight, Calendar, TrendingUp } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import { LedgerModal } from '../components/LedgerModal';
+import { useState } from 'react';
+import { useIsMobile } from '../hooks/use-mobile';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -15,22 +17,13 @@ export function TreasurySection({ onViewFull }: TreasurySectionProps) {
   const sectionRef = useRef<HTMLElement>(null);
   const leftTileRef = useRef<HTMLDivElement>(null);
   const rightTileRef = useRef<HTMLDivElement>(null);
-  
+
   const [showLedgerModal, setShowLedgerModal] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
-  
+  const isMobile = useIsMobile();
+
   const getBalance = useStore((state) => state.getBalance);
   const getAverageContribution = useStore((state) => state.getAverageContribution);
   const checkIns = useStore((state) => state.checkIns);
-
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
 
   useLayoutEffect(() => {
     const section = sectionRef.current;
@@ -38,7 +31,7 @@ export function TreasurySection({ onViewFull }: TreasurySectionProps) {
     const rightTile = rightTileRef.current;
 
     if (!section || !leftTile || !rightTile) return;
-    
+
     if (isMobile) {
       gsap.set([leftTile, rightTile], { opacity: 1, x: 0 });
       return;
@@ -97,7 +90,7 @@ export function TreasurySection({ onViewFull }: TreasurySectionProps) {
               <div className="flex items-center gap-2 mt-2">
                 <TrendingUp className="w-4 h-4 text-brutal-green" />
                 <p className="text-sm text-brutal-text-secondary">
-                  7-day average: ${average.toFixed(2)}
+                  Avg contribution: ${average.toFixed(2)}
                 </p>
               </div>
             </div>
@@ -112,7 +105,7 @@ export function TreasurySection({ onViewFull }: TreasurySectionProps) {
               </button>
 
               {onViewFull && (
-                <button 
+                <button
                   onClick={onViewFull}
                   className="w-full flex items-center justify-center gap-2 text-brutal-text-secondary hover:text-brutal-yellow transition-colors font-mono text-sm uppercase tracking-wider"
                 >
@@ -145,11 +138,11 @@ export function TreasurySection({ onViewFull }: TreasurySectionProps) {
               )}
             </div>
 
-            <button 
-              onClick={() => document.getElementById('meetings')?.scrollIntoView({ behavior: 'smooth' })}
+            <button
+              onClick={() => document.getElementById('history')?.scrollIntoView({ behavior: 'smooth' })}
               className="mt-4 w-full flex items-center justify-center gap-2 text-brutal-text-secondary hover:text-brutal-yellow transition-colors font-mono text-sm uppercase tracking-wider"
             >
-              See all meetings
+              See full history
               <ArrowRight className="w-4 h-4" />
             </button>
           </div>
@@ -173,7 +166,7 @@ export function TreasurySection({ onViewFull }: TreasurySectionProps) {
               <div className="flex items-center gap-2 mt-2">
                 <TrendingUp className="w-4 h-4 text-brutal-green" />
                 <p className="text-clamp-body text-brutal-text-secondary">
-                  7-day average: ${average.toFixed(2)}
+                  Avg contribution: ${average.toFixed(2)}
                 </p>
               </div>
             </div>
@@ -188,7 +181,7 @@ export function TreasurySection({ onViewFull }: TreasurySectionProps) {
               </button>
 
               {onViewFull && (
-                <button 
+                <button
                   onClick={onViewFull}
                   className="w-full flex items-center justify-center gap-2 text-brutal-text-secondary hover:text-brutal-yellow transition-colors font-mono text-sm uppercase tracking-wider"
                 >
@@ -224,11 +217,11 @@ export function TreasurySection({ onViewFull }: TreasurySectionProps) {
               )}
             </div>
 
-            <button 
-              onClick={() => document.getElementById('meetings')?.scrollIntoView({ behavior: 'smooth' })}
+            <button
+              onClick={() => document.getElementById('history')?.scrollIntoView({ behavior: 'smooth' })}
               className="mt-4 w-full flex items-center justify-center gap-2 text-brutal-text-secondary hover:text-brutal-yellow transition-colors font-mono text-sm uppercase tracking-wider"
             >
-              See all meetings
+              See full history
               <ArrowRight className="w-4 h-4" />
             </button>
           </div>
@@ -236,9 +229,9 @@ export function TreasurySection({ onViewFull }: TreasurySectionProps) {
       </section>
 
       {/* Ledger Modal */}
-      <LedgerModal 
-        isOpen={showLedgerModal} 
-        onClose={() => setShowLedgerModal(false)} 
+      <LedgerModal
+        isOpen={showLedgerModal}
+        onClose={() => setShowLedgerModal(false)}
       />
     </>
   );
